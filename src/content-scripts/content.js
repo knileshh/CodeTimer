@@ -1,6 +1,11 @@
 // Content script for Codeforces Timer Extension
 class CodeforcesTimer {
   constructor() {
+    // Start performance monitoring
+    if (window.performanceMonitor) {
+      window.startTiming('timer-initialization');
+    }
+
     this.problemKey = null;
     this.timerState = {
       elapsedSeconds: 0,
@@ -50,6 +55,11 @@ class CodeforcesTimer {
     // Start timer if it was running
     if (this.timerState.isRunning) {
       this.startTimer();
+    }
+
+    // End performance monitoring for initialization
+    if (window.performanceMonitor) {
+      window.endTiming('timer-initialization');
     }
   }
 
@@ -387,6 +397,11 @@ class CodeforcesTimer {
   async saveTimerState() {
     if (this.isDestroyed) return;
 
+    // Start performance monitoring
+    if (window.performanceMonitor) {
+      window.startTiming('save-timer-state');
+    }
+
     // Clear existing timeout to batch writes
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
@@ -402,8 +417,20 @@ class CodeforcesTimer {
           problemKey: this.problemKey,
           state: this.timerState
         });
+        
+        // Record successful save
+        if (window.performanceMonitor) {
+          window.endTiming('save-timer-state');
+          window.recordMetric('storage-save-success', 1);
+        }
       } catch (error) {
         console.warn('Failed to save timer state:', error);
+        
+        // Record failed save
+        if (window.performanceMonitor) {
+          window.endTiming('save-timer-state');
+          window.recordMetric('storage-save-error', 1, { error: error.message });
+        }
       }
     }, 5000);
   }

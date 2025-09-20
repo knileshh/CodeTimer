@@ -19,7 +19,7 @@
   "content_scripts": [
     {
       "matches": ["https://codeforces.com/*"],
-      "js": ["src/utils/error-handler.js", "src/content-scripts/content.js"],
+      "js": ["src/utils/error-handler.js", "src/utils/performance-monitor.js", "src/content-scripts/content.js"],
       "css": ["styles.css"],
       "run_at": "document_end",
       "all_frames": false

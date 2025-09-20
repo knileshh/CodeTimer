@@ -255,7 +255,65 @@ body.dark .cf-timer-time {
   color: #64B5F6;
 }
 
-body.dark .cf-timer-stats {
-  border-top-color: #555555;
+/* Performance metrics styling */
+.performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.performance-item {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #2196F3;
+}
+
+.cf-timer-dark .performance-item {
+  background: #333333;
+}
+
+.performance-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.cf-timer-dark .performance-label {
+  color: #ffffff;
+}
+
+.performance-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2196F3;
+  margin-bottom: 4px;
+}
+
+.performance-details {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.cf-timer-dark .performance-details {
+  color: #999;
+}
+
+/* Responsive performance metrics */
+@media (max-width: 768px) {
+  .performance-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .performance-item {
+    padding: 12px;
+  }
+  
+  .performance-value {
+    font-size: 20px;
+  }
 }
 

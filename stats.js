@@ -53,6 +53,7 @@ class StatsManager {
   displayStats() {
     this.displayOverviewStats();
     this.displayRecentProblems();
+    this.displayPerformanceMetrics();
   }
 
   displayOverviewStats() {
@@ -60,6 +61,58 @@ class StatsManager {
     document.getElementById('todayTime').textContent = this.formatTime(this.stats.todayTime);
     document.getElementById('avgTime').textContent = this.formatTime(this.stats.averageTime);
     document.getElementById('problemCount').textContent = this.stats.problemCount;
+  }
+
+  displayPerformanceMetrics() {
+    const container = document.getElementById('performanceMetrics');
+    
+    if (!window.performanceMonitor) {
+      container.innerHTML = '<div class="no-data">Performance monitoring not available</div>';
+      return;
+    }
+    
+    const metrics = window.performanceMonitor.getSummary();
+    const memory = window.performanceMonitor.monitorMemory();
+    
+    if (Object.keys(metrics).length === 0) {
+      container.innerHTML = '<div class="no-data">No performance data available yet</div>';
+      return;
+    }
+    
+    let metricsHtml = '<div class="performance-grid">';
+    
+    // Display key metrics
+    for (const [label, data] of Object.entries(metrics)) {
+      if (data.count > 0) {
+        metricsHtml += `
+          <div class="performance-item">
+            <div class="performance-label">${label}</div>
+            <div class="performance-value">${data.avg.toFixed(2)}ms</div>
+            <div class="performance-details">
+              Count: ${data.count} | Min: ${data.min.toFixed(2)}ms | Max: ${data.max.toFixed(2)}ms
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // Add memory info if available
+    if (memory) {
+      const memoryPercent = (memory.used / memory.limit * 100).toFixed(1);
+      metricsHtml += `
+        <div class="performance-item">
+          <div class="performance-label">Memory Usage</div>
+          <div class="performance-value">${memoryPercent}%</div>
+          <div class="performance-details">
+            Used: ${(memory.used / 1024 / 1024).toFixed(1)}MB | 
+            Total: ${(memory.total / 1024 / 1024).toFixed(1)}MB
+          </div>
+        </div>
+      `;
+    }
+    
+    metricsHtml += '</div>';
+    container.innerHTML = metricsHtml;
   }
 
   displayRecentProblems() {
