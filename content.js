@@ -40,6 +40,9 @@ class CodeforcesTimer {
     // Setup message listeners
     this.setupMessageListeners();
     
+    // Setup keyboard shortcuts
+    this.setupKeyboardShortcuts();
+    
     // Start timer if it was running
     if (this.timerState.isRunning) {
       this.startTimer();
@@ -104,8 +107,8 @@ class CodeforcesTimer {
     this.widget.id = 'cf-timer-widget';
     this.widget.innerHTML = `
       <div class="cf-timer-header">
-        <span class="cf-timer-title">Timer</span>
-        <button class="cf-timer-close" title="Close Timer">×</button>
+        <span class="cf-timer-title" title="Space: Start/Pause | Ctrl+R: Reset | Ctrl+S: Solved | Esc: Close">Timer</span>
+        <button class="cf-timer-close" title="Close Timer (Esc)">×</button>
       </div>
       <div class="cf-timer-display">
         <span class="cf-timer-time">${this.formatTime(this.timerState.elapsedSeconds)}</span>
@@ -353,6 +356,44 @@ class CodeforcesTimer {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'STORAGE_CHANGED') {
         // Handle storage changes if needed
+      }
+    });
+  }
+
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Only handle shortcuts when timer widget is visible and focused
+      if (!this.widget || this.widget.style.display === 'none') return;
+      
+      // Prevent conflicts with Codeforces shortcuts
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      switch(e.key) {
+        case ' ':
+          e.preventDefault();
+          if (this.timerState.isRunning) {
+            this.pauseTimer();
+          } else {
+            this.startTimer();
+          }
+          break;
+        case 'r':
+        case 'R':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            this.resetTimer();
+          }
+          break;
+        case 's':
+        case 'S':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            this.markAsSolved();
+          }
+          break;
+        case 'Escape':
+          this.hideWidget();
+          break;
       }
     });
   }
