@@ -38,7 +38,7 @@ A powerful browser extension that provides a floating stopwatch for Codeforces p
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/codeforces-timer-extension.git
+   git clone https://github.com/knileshh/CodeTimer.git
    cd codeforces-timer-extension
    ```
 
