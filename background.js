@@ -14,6 +14,7 @@ class TimerBackground {
     this.messageHandlers.set('GET_ALL_STATS', this.getAllStats.bind(this));
     this.messageHandlers.set('CLEAR_ALL_DATA', this.clearAllData.bind(this));
     this.messageHandlers.set('TOGGLE_EXTENSION', this.toggleExtension.bind(this));
+    this.messageHandlers.set('REPORT_ERROR', this.reportError.bind(this));
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const handler = this.messageHandlers.get(message.type);
@@ -181,6 +182,32 @@ class TimerBackground {
       await chrome.storage.local.set({ extensionEnabled: enabled });
       sendResponse({ success: true });
     } catch (error) {
+      sendResponse({ success: false, error: error.message });
+    }
+  }
+
+  async reportError(message, sendResponse) {
+    try {
+      const { error } = message;
+      console.error('Error reported from content script:', error);
+      
+      // Store error for debugging
+      const errors = await chrome.storage.local.get(['reportedErrors']);
+      const errorList = errors.reportedErrors || [];
+      errorList.push({
+        ...error,
+        reportedAt: new Date().toISOString()
+      });
+      
+      // Keep only last 50 errors
+      if (errorList.length > 50) {
+        errorList.splice(0, errorList.length - 50);
+      }
+      
+      await chrome.storage.local.set({ reportedErrors: errorList });
+      sendResponse({ success: true });
+    } catch (error) {
+      console.error('Failed to report error:', error);
       sendResponse({ success: false, error: error.message });
     }
   }
