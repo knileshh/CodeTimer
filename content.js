@@ -14,6 +14,8 @@ class CodeforcesTimer {
     this.intervalId = null;
     this.isExtensionEnabled = true;
     this.saveTimeout = null; // For batching storage writes
+    this.cleanupFunctions = []; // Track cleanup functions
+    this.isDestroyed = false; // Prevent operations after destruction
     
     this.init();
   }
@@ -169,8 +171,8 @@ class CodeforcesTimer {
     let isDragging = false;
     let startX, startY, startLeft, startTop;
 
-    header.addEventListener('mousedown', (e) => {
-      if (e.target.classList.contains('cf-timer-close')) return;
+    const mouseDownHandler = (e) => {
+      if (e.target.classList.contains('cf-timer-close') || this.isDestroyed) return;
       
       isDragging = true;
       startX = e.clientX;
@@ -182,24 +184,35 @@ class CodeforcesTimer {
       
       this.widget.style.cursor = 'grabbing';
       e.preventDefault();
-    });
+    };
 
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
+    const mouseMoveHandler = (e) => {
+      if (!isDragging || this.isDestroyed) return;
       
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       
       this.widget.style.left = `${startLeft + deltaX}px`;
       this.widget.style.top = `${startTop + deltaY}px`;
-    });
+    };
 
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
+    const mouseUpHandler = () => {
+      if (isDragging && !this.isDestroyed) {
         isDragging = false;
         this.widget.style.cursor = 'grab';
         this.saveWidgetPosition();
       }
+    };
+
+    header.addEventListener('mousedown', mouseDownHandler);
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
+
+    // Track cleanup functions
+    this.cleanupFunctions.push(() => {
+      header.removeEventListener('mousedown', mouseDownHandler);
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
     });
   }
 
@@ -238,12 +251,17 @@ class CodeforcesTimer {
   }
 
   startTimer() {
-    if (this.timerState.isRunning) return;
+    if (this.timerState.isRunning || this.isDestroyed) return;
     
     this.timerState.isRunning = true;
     this.timerState.currentSessionStart = new Date().toISOString();
     
     this.intervalId = setInterval(() => {
+      if (this.isDestroyed) {
+        this.pauseTimer();
+        return;
+      }
+
       if (this.timerState.countdownMode) {
         this.timerState.elapsedSeconds++;
         // Check if countdown target reached
@@ -367,6 +385,8 @@ class CodeforcesTimer {
   }
 
   async saveTimerState() {
+    if (this.isDestroyed) return;
+
     // Clear existing timeout to batch writes
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
@@ -374,6 +394,8 @@ class CodeforcesTimer {
     
     // Batch storage writes every 5 seconds for better performance
     this.saveTimeout = setTimeout(async () => {
+      if (this.isDestroyed) return;
+      
       try {
         await chrome.runtime.sendMessage({
           type: 'SAVE_TIMER_STATE',
@@ -438,9 +460,9 @@ class CodeforcesTimer {
   }
 
   setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
+    const keyboardHandler = (e) => {
       // Only handle shortcuts when timer widget is visible and focused
-      if (!this.widget || this.widget.style.display === 'none') return;
+      if (!this.widget || this.widget.style.display === 'none' || this.isDestroyed) return;
       
       // Prevent conflicts with Codeforces shortcuts
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -472,16 +494,75 @@ class CodeforcesTimer {
           this.hideWidget();
           break;
       }
+    };
+
+    document.addEventListener('keydown', keyboardHandler);
+    
+    // Track cleanup function
+    this.cleanupFunctions.push(() => {
+      document.removeEventListener('keydown', keyboardHandler);
     });
+  }
+
+  // Cleanup method to prevent memory leaks
+  destroy() {
+    if (this.isDestroyed) return;
+    
+    this.isDestroyed = true;
+    
+    // Clear timers
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = null;
+    }
+    
+    // Run all cleanup functions
+    this.cleanupFunctions.forEach(cleanup => {
+      try {
+        cleanup();
+      } catch (error) {
+        console.warn('Error during cleanup:', error);
+      }
+    });
+    
+    // Remove widget from DOM
+    if (this.widget && this.widget.parentNode) {
+      this.widget.parentNode.removeChild(this.widget);
+    }
+    
+    // Clear references
+    this.widget = null;
+    this.cleanupFunctions = [];
   }
 }
 
 // Initialize timer when DOM is ready
+let timerInstance = null;
+
+function initializeTimer() {
+  // Clean up existing instance if any
+  if (timerInstance) {
+    timerInstance.destroy();
+  }
+  
+  timerInstance = new CodeforcesTimer();
+}
+
+// Handle page navigation cleanup
+window.addEventListener('beforeunload', () => {
+  if (timerInstance) {
+    timerInstance.destroy();
+  }
+});
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    new CodeforcesTimer();
-  });
+  document.addEventListener('DOMContentLoaded', initializeTimer);
 } else {
-  new CodeforcesTimer();
+  initializeTimer();
 }
 
