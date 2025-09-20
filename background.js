@@ -1,51 +1,78 @@
 // Background service worker for Codeforces Timer Extension
 class TimerBackground {
   constructor() {
+    this.messageHandlers = new Map();
     this.setupMessageHandlers();
     this.setupStorageListeners();
+    this.setupErrorHandling();
   }
 
   setupMessageHandlers() {
+    // Use Map for better performance than switch statement
+    this.messageHandlers.set('GET_TIMER_STATE', this.getTimerState.bind(this));
+    this.messageHandlers.set('SAVE_TIMER_STATE', this.saveTimerState.bind(this));
+    this.messageHandlers.set('GET_ALL_STATS', this.getAllStats.bind(this));
+    this.messageHandlers.set('CLEAR_ALL_DATA', this.clearAllData.bind(this));
+    this.messageHandlers.set('TOGGLE_EXTENSION', this.toggleExtension.bind(this));
+
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      switch (message.type) {
-        case 'GET_TIMER_STATE':
-          this.getTimerState(message.problemKey, sendResponse);
-          return true; // Keep message channel open for async response
-        case 'SAVE_TIMER_STATE':
-          this.saveTimerState(message.problemKey, message.state, sendResponse);
-          return true;
-        case 'GET_ALL_STATS':
-          this.getAllStats(sendResponse);
-          return true;
-        case 'CLEAR_ALL_DATA':
-          this.clearAllData(sendResponse);
-          return true;
-        case 'TOGGLE_EXTENSION':
-          this.toggleExtension(message.enabled, sendResponse);
-          return true;
+      const handler = this.messageHandlers.get(message.type);
+      if (handler) {
+        handler(message, sendResponse);
+        return true; // Keep message channel open for async response
       }
+      
+      // Unknown message type
+      sendResponse({ success: false, error: 'Unknown message type' });
+      return false;
     });
   }
 
   setupStorageListeners() {
     chrome.storage.onChanged.addListener((changes, namespace) => {
       if (namespace === 'local') {
-        // Notify content scripts of storage changes
-        chrome.tabs.query({url: 'https://codeforces.com/*'}, (tabs) => {
-          tabs.forEach(tab => {
-            chrome.tabs.sendMessage(tab.id, {
-              type: 'STORAGE_CHANGED',
-              changes: changes
-            }).catch(() => {
-              // Tab might not have content script loaded yet
-            });
-          });
-        });
+        // Debounce storage change notifications to avoid excessive updates
+        clearTimeout(this.storageDebounceTimeout);
+        this.storageDebounceTimeout = setTimeout(() => {
+          this.notifyContentScripts(changes);
+        }, 100);
       }
     });
   }
 
-  async getTimerState(problemKey, sendResponse) {
+  async notifyContentScripts(changes) {
+    try {
+      const tabs = await chrome.tabs.query({url: 'https://codeforces.com/*'});
+      const notifications = tabs.map(tab => 
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'STORAGE_CHANGED',
+          changes: changes
+        }).catch(() => {
+          // Tab might not have content script loaded yet - ignore silently
+        })
+      );
+      
+      await Promise.allSettled(notifications);
+    } catch (error) {
+      console.warn('Failed to notify content scripts:', error);
+    }
+  }
+
+  setupErrorHandling() {
+    // Global error handler for unhandled promise rejections
+    self.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      event.preventDefault();
+    });
+
+    // Global error handler for runtime errors
+    self.addEventListener('error', (event) => {
+      console.error('Runtime error:', event.error);
+    });
+  }
+
+  async getTimerState(message, sendResponse) {
+    const { problemKey } = message;
     try {
       const result = await chrome.storage.local.get([problemKey, 'extensionEnabled']);
       const state = result[problemKey] || {
@@ -61,7 +88,8 @@ class TimerBackground {
     }
   }
 
-  async saveTimerState(problemKey, state, sendResponse) {
+  async saveTimerState(message, sendResponse) {
+    const { problemKey, state } = message;
     try {
       await chrome.storage.local.set({
         [problemKey]: {
@@ -75,7 +103,7 @@ class TimerBackground {
     }
   }
 
-  async getAllStats(sendResponse) {
+  async getAllStats(message, sendResponse) {
     try {
       const allData = await chrome.storage.local.get();
       const stats = this.calculateStats(allData);
@@ -94,42 +122,43 @@ class TimerBackground {
     let problemCount = 0;
     const recentProblems = [];
 
-    problemKeys.forEach(key => {
+    // Use for...of for better performance than forEach
+    for (const key of problemKeys) {
       const data = allData[key];
-      if (data && data.history) {
-        data.history.forEach(session => {
-          const sessionTime = session.end ? 
-            (new Date(session.end) - new Date(session.start)) / 1000 : 0;
-          totalTime += sessionTime;
-          
-          if (new Date(session.start).toDateString() === today) {
-            todayTime += sessionTime;
-          }
-        });
+      if (!data?.history) continue;
+
+      for (const session of data.history) {
+        const sessionTime = session.end ? 
+          (new Date(session.end) - new Date(session.start)) / 1000 : 0;
+        totalTime += sessionTime;
         
-        if (data.history.length > 0) {
-          problemCount++;
-          recentProblems.push({
-            key,
-            elapsedSeconds: data.elapsedSeconds,
-            lastSession: data.history[data.history.length - 1]
-          });
+        if (new Date(session.start).toDateString() === today) {
+          todayTime += sessionTime;
         }
       }
-    });
+      
+      if (data.history.length > 0) {
+        problemCount++;
+        recentProblems.push({
+          key,
+          elapsedSeconds: data.elapsedSeconds,
+          lastSession: data.history[data.history.length - 1]
+        });
+      }
+    }
 
     return {
       totalTime,
       todayTime,
       averageTime: problemCount > 0 ? totalTime / problemCount : 0,
       problemCount,
-      recentProblems: recentProblems.sort((a, b) => 
-        new Date(b.lastSession.start) - new Date(a.lastSession.start)
-      ).slice(0, 10)
+      recentProblems: recentProblems
+        .sort((a, b) => new Date(b.lastSession.start) - new Date(a.lastSession.start))
+        .slice(0, 10)
     };
   }
 
-  async clearAllData(sendResponse) {
+  async clearAllData(message, sendResponse) {
     try {
       const allData = await chrome.storage.local.get();
       const keysToRemove = Object.keys(allData).filter(key => 
@@ -146,7 +175,8 @@ class TimerBackground {
     }
   }
 
-  async toggleExtension(enabled, sendResponse) {
+  async toggleExtension(message, sendResponse) {
+    const { enabled } = message;
     try {
       await chrome.storage.local.set({ extensionEnabled: enabled });
       sendResponse({ success: true });
