@@ -2,12 +2,35 @@
 class StatsManager {
   constructor() {
     this.stats = null;
+    this.isLoading = false;
+    this.retryCount = 0;
+    this.maxRetries = 3;
     this.init();
   }
 
   async init() {
-    await this.loadStats();
-    this.setupEventListeners();
+    try {
+      this.showLoading();
+      await this.loadStats();
+      this.setupEventListeners();
+    } catch (error) {
+      console.error('Failed to initialize stats:', error);
+      this.handleInitializationError(error);
+    }
+  }
+
+  async handleInitializationError(error) {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      setTimeout(() => this.init(), 1000 * this.retryCount);
+    } else {
+      this.showError('Failed to load statistics. Please refresh the page.');
+    }
+  }
+
+  showLoading() {
+    const container = document.getElementById('recentProblems');
+    container.innerHTML = '<div class="loading">Loading statistics...</div>';
   }
 
   async loadStats() {
@@ -118,10 +141,22 @@ class StatsManager {
       `<div class="error">${message}</div>`;
   }
 
-  sendMessage(message) {
-    return new Promise((resolve) => {
+  async sendMessage(message, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Message timeout'));
+      }, timeout);
+
       chrome.runtime.sendMessage(message, (response) => {
-        resolve(response);
+        clearTimeout(timeoutId);
+        
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else if (response?.success === false) {
+          reject(new Error(response.error || 'Unknown error'));
+        } else {
+          resolve(response);
+        }
       });
     });
   }

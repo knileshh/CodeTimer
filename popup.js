@@ -1,12 +1,30 @@
 // Popup script for Codeforces Timer Extension
 class PopupManager {
   constructor() {
+    this.isInitialized = false;
+    this.retryCount = 0;
+    this.maxRetries = 3;
     this.init();
   }
 
   async init() {
-    await this.loadSettings();
-    this.setupEventListeners();
+    try {
+      await this.loadSettings();
+      this.setupEventListeners();
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Failed to initialize popup:', error);
+      this.handleInitializationError(error);
+    }
+  }
+
+  async handleInitializationError(error) {
+    if (this.retryCount < this.maxRetries) {
+      this.retryCount++;
+      setTimeout(() => this.init(), 1000 * this.retryCount);
+    } else {
+      this.showStatus('Failed to initialize popup. Please reload the extension.', 'error');
+    }
   }
 
   async loadSettings() {
@@ -151,10 +169,22 @@ class PopupManager {
     }
   }
 
-  sendMessage(message) {
-    return new Promise((resolve) => {
+  async sendMessage(message, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Message timeout'));
+      }, timeout);
+
       chrome.runtime.sendMessage(message, (response) => {
-        resolve(response);
+        clearTimeout(timeoutId);
+        
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else if (response?.success === false) {
+          reject(new Error(response.error || 'Unknown error'));
+        } else {
+          resolve(response);
+        }
       });
     });
   }
