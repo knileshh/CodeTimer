@@ -1,0 +1,42 @@
+{
+  "name": "codeforces-timer-extension",
+  "version": "1.0.0",
+  "description": "A browser extension that provides a floating stopwatch for Codeforces problem-solving with persistent timing and statistics tracking",
+  "main": "background.js",
+  "scripts": {
+    "build": "echo 'Building extension...' && npm run lint",
+    "lint": "echo 'Linting JavaScript files...'",
+    "test": "echo 'Running tests...'",
+    "package": "zip -r codeforces-timer-extension.zip . -x '*.git*' 'node_modules/*' '*.zip'",
+    "dev": "echo 'Starting development mode...'"
+  },
+  "keywords": [
+    "codeforces",
+    "timer",
+    "stopwatch",
+    "competitive-programming",
+    "browser-extension",
+    "chrome-extension",
+    "productivity",
+    "tracking"
+  ],
+  "author": "Nilesh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/codeforces-timer-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/codeforces-timer-extension/issues"
+  },
+  "homepage": "https://github.com/yourusername/codeforces-timer-extension#readme",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": [
+    "Chrome >= 88",
+    "Edge >= 88"
+  ]
+}
