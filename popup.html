@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codeforces Timer - Settings</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+    
+    .header p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 50px;
+      height: 24px;
+      background: #ccc;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .toggle.active {
+      background: #4CAF50;
+    }
+    
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .toggle.active::after {
+      transform: translateX(26px);
+    }
+    
+    .btn {
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    
+    .btn:hover {
+      background: #1976D2;
+    }
+    
+    .btn.danger {
+      background: #f44336;
+    }
+    
+    .btn.danger:hover {
+      background: #d32f2f;
+    }
+    
+    .stats-link {
+      display: block;
+      text-align: center;
+      color: #2196F3;
+      text-decoration: none;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    
+    .stats-link:hover {
+      text-decoration: underline;
+    }
+    
+    .status {
+      font-size: 11px;
+      color: #666;
+      margin-top: 8px;
+      text-align: center;
+    }
+    
+    .status.success {
+      color: #4CAF50;
+    }
+    
+    .status.error {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⏱️ Codeforces Timer</h1>
+    <p>Track your problem-solving time</p>
+  </div>
+  
+  <div class="section">
+    <h3>Extension Settings</h3>
+    <div class="toggle-container">
+      <span>Enable Timer</span>
+      <div class="toggle" id="extensionToggle"></div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  
+  <div class="section">
+    <h3>Statistics</h3>
+    <button class="btn" id="viewStatsBtn">📊 View Stats</button>
+    <a href="#" class="stats-link" id="openStatsLink">Open Stats Page</a>
+  </div>
+  
+  <div class="section">
+    <h3>Data Management</h3>
+    <button class="btn danger" id="clearDataBtn">🗑️ Clear All Data</button>
+    <div class="status" id="clearStatus"></div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
+
