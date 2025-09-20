@@ -53,3 +53,9 @@ key.pem
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Development files
+.DS_Store
+*.log
+*.tmp
+*.temp
