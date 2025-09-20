@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Codeforces Timer Extension",
+  "version": "1.0",
+  "description": "A floating stopwatch for Codeforces problem solving with persistent timing and stats tracking",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://codeforces.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://codeforces.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Codeforces Timer"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["stats.html"],
+      "matches": ["https://codeforces.com/*"]
+    }
+  ]
+}
+
