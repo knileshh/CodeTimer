@@ -11,6 +11,7 @@ class CodeforcesTimer {
     this.widget = null;
     this.intervalId = null;
     this.isExtensionEnabled = true;
+    this.saveTimeout = null; // For batching storage writes
     
     this.init();
   }
@@ -319,11 +320,23 @@ class CodeforcesTimer {
   }
 
   async saveTimerState() {
-    chrome.runtime.sendMessage({
-      type: 'SAVE_TIMER_STATE',
-      problemKey: this.problemKey,
-      state: this.timerState
-    });
+    // Clear existing timeout to batch writes
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    
+    // Batch storage writes every 5 seconds for better performance
+    this.saveTimeout = setTimeout(async () => {
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'SAVE_TIMER_STATE',
+          problemKey: this.problemKey,
+          state: this.timerState
+        });
+      } catch (error) {
+        console.warn('Failed to save timer state:', error);
+      }
+    }, 5000);
   }
 
   hideWidget() {
