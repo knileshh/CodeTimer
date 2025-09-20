@@ -1,0 +1,75 @@
+<!-- Simple icon generator for Codeforces Timer Extension -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas32" width="32" height="32"></canvas>
+    <canvas id="canvas48" width="48" height="48"></canvas>
+    <canvas id="canvas128" width="128" height="128"></canvas>
+    
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background circle
+            ctx.fillStyle = '#2196F3';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Clock face
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = size > 32 ? 3 : 2;
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 6, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Clock hands
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = size > 32 ? 4 : 2;
+            ctx.beginPath();
+            ctx.moveTo(size/2, size/2);
+            ctx.lineTo(size/2, size/4);
+            ctx.stroke();
+            
+            ctx.lineWidth = size > 32 ? 3 : 2;
+            ctx.beginPath();
+            ctx.moveTo(size/2, size/2);
+            ctx.lineTo(size/2 + size/6, size/2);
+            ctx.stroke();
+            
+            // Center dot
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size > 32 ? 3 : 2, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // CF text for larger icons
+            if (size >= 48) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `${size/8}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText('CF', size/2, size/2 + size/16);
+            }
+            
+            // Download the icon
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Generate all icons
+        setTimeout(() => {
+            createIcon('canvas16', 16);
+            setTimeout(() => createIcon('canvas32', 32), 100);
+            setTimeout(() => createIcon('canvas48', 48), 200);
+            setTimeout(() => createIcon('canvas128', 128), 300);
+        }, 100);
+    </script>
+</body>
+</html>
