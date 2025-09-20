@@ -158,6 +158,14 @@
   background: #7B1FA2;
 }
 
+.cf-timer-countdown {
+  background: #607D8B;
+}
+
+.cf-timer-countdown:hover {
+  background: #455A64;
+}
+
 .cf-timer-stats {
   padding: 8px 12px 12px;
   text-align: center;

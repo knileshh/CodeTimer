@@ -6,7 +6,9 @@ class CodeforcesTimer {
       elapsedSeconds: 0,
       isRunning: false,
       lastUpdated: new Date().toISOString(),
-      history: []
+      history: [],
+      countdownMode: false,
+      countdownTarget: 0
     };
     this.widget = null;
     this.intervalId = null;
@@ -118,6 +120,7 @@ class CodeforcesTimer {
         <button class="cf-timer-btn cf-timer-pause" title="Pause Timer">⏸</button>
         <button class="cf-timer-btn cf-timer-reset" title="Reset Timer">⏹</button>
         <button class="cf-timer-btn cf-timer-solved" title="Mark as Solved">✓</button>
+        <button class="cf-timer-btn cf-timer-countdown" title="Toggle Countdown Mode">⏰</button>
       </div>
       <div class="cf-timer-stats">
         <button class="cf-timer-stats-btn" title="View Stats">📊</button>
@@ -138,6 +141,9 @@ class CodeforcesTimer {
     
     // Load saved position
     this.loadWidgetPosition();
+    
+    // Update countdown button state
+    this.updateCountdownButton();
   }
 
   setupWidgetEventListeners() {
@@ -145,6 +151,7 @@ class CodeforcesTimer {
     const pauseBtn = this.widget.querySelector('.cf-timer-pause');
     const resetBtn = this.widget.querySelector('.cf-timer-reset');
     const solvedBtn = this.widget.querySelector('.cf-timer-solved');
+    const countdownBtn = this.widget.querySelector('.cf-timer-countdown');
     const closeBtn = this.widget.querySelector('.cf-timer-close');
     const statsBtn = this.widget.querySelector('.cf-timer-stats-btn');
 
@@ -152,6 +159,7 @@ class CodeforcesTimer {
     pauseBtn.addEventListener('click', () => this.pauseTimer());
     resetBtn.addEventListener('click', () => this.resetTimer());
     solvedBtn.addEventListener('click', () => this.markAsSolved());
+    countdownBtn.addEventListener('click', () => this.toggleCountdownMode());
     closeBtn.addEventListener('click', () => this.hideWidget());
     statsBtn.addEventListener('click', () => this.openStats());
   }
@@ -236,7 +244,16 @@ class CodeforcesTimer {
     this.timerState.currentSessionStart = new Date().toISOString();
     
     this.intervalId = setInterval(() => {
-      this.timerState.elapsedSeconds++;
+      if (this.timerState.countdownMode) {
+        this.timerState.elapsedSeconds++;
+        // Check if countdown target reached
+        if (this.timerState.elapsedSeconds >= this.timerState.countdownTarget) {
+          this.pauseTimer();
+          this.showCountdownComplete();
+        }
+      } else {
+        this.timerState.elapsedSeconds++;
+      }
       this.updateDisplay();
       this.saveTimerState();
     }, 1000);
@@ -295,7 +312,34 @@ class CodeforcesTimer {
 
   updateDisplay() {
     const timeDisplay = this.widget.querySelector('.cf-timer-time');
-    timeDisplay.textContent = this.formatTime(this.timerState.elapsedSeconds);
+    if (this.timerState.countdownMode) {
+      const remaining = this.timerState.countdownTarget - this.timerState.elapsedSeconds;
+      timeDisplay.textContent = this.formatTime(Math.max(0, remaining));
+      timeDisplay.style.color = remaining <= 60 ? '#f44336' : '#2196F3'; // Red when < 1 min
+    } else {
+      timeDisplay.textContent = this.formatTime(this.timerState.elapsedSeconds);
+      timeDisplay.style.color = '#2196F3';
+    }
+  }
+
+  showCountdownComplete() {
+    const timeDisplay = this.widget.querySelector('.cf-timer-time');
+    timeDisplay.textContent = 'TIME UP!';
+    timeDisplay.style.color = '#f44336';
+    timeDisplay.style.fontWeight = 'bold';
+    
+    // Show notification
+    if (Notification.permission === 'granted') {
+      new Notification('Countdown Complete!', {
+        body: 'Your countdown timer has finished.',
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text y="18" font-size="18">⏰</text></svg>'
+      });
+    }
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+      this.updateDisplay();
+    }, 3000);
   }
 
   updateButtonStates() {
@@ -350,6 +394,39 @@ class CodeforcesTimer {
     chrome.runtime.sendMessage({
       type: 'OPEN_STATS'
     });
+  }
+
+  toggleCountdownMode() {
+    if (this.timerState.countdownMode) {
+      // Switch to stopwatch mode
+      this.timerState.countdownMode = false;
+      this.timerState.countdownTarget = 0;
+    } else {
+      // Switch to countdown mode - prompt for target time
+      const targetMinutes = prompt('Enter countdown target in minutes:', '30');
+      if (targetMinutes && !isNaN(targetMinutes) && targetMinutes > 0) {
+        this.timerState.countdownMode = true;
+        this.timerState.countdownTarget = parseInt(targetMinutes) * 60;
+        this.timerState.elapsedSeconds = 0; // Reset for countdown
+      } else {
+        return; // User cancelled or invalid input
+      }
+    }
+    
+    this.updateDisplay();
+    this.updateCountdownButton();
+    this.saveTimerState();
+  }
+
+  updateCountdownButton() {
+    const countdownBtn = this.widget.querySelector('.cf-timer-countdown');
+    if (this.timerState.countdownMode) {
+      countdownBtn.style.backgroundColor = '#FF9800';
+      countdownBtn.title = 'Switch to Stopwatch Mode';
+    } else {
+      countdownBtn.style.backgroundColor = '';
+      countdownBtn.title = 'Toggle Countdown Mode';
+    }
   }
 
   setupMessageListeners() {
