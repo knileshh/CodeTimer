@@ -5,59 +5,66 @@ class PerformanceMonitor {
     this.startTimes = new Map();
     this.isEnabled = true;
     this.maxMetrics = 100;
-    
+
     this.setupPerformanceObserver();
   }
 
   // Start timing a performance metric
   startTiming(label) {
-    if (!this.isEnabled) return;
-    
+    if (!this.isEnabled) {
+      return;
+    }
+
     this.startTimes.set(label, performance.now());
   }
 
   // End timing and record the metric
   endTiming(label) {
-    if (!this.isEnabled) return null;
-    
+    if (!this.isEnabled) {
+      return null;
+    }
+
     const startTime = this.startTimes.get(label);
     if (!startTime) {
       console.warn(`No start time found for metric: ${label}`);
       return null;
     }
-    
+
     const duration = performance.now() - startTime;
     this.recordMetric(label, duration);
     this.startTimes.delete(label);
-    
+
     return duration;
   }
 
   // Record a performance metric
   recordMetric(label, value, metadata = {}) {
-    if (!this.isEnabled) return;
-    
+    if (!this.isEnabled) {
+      return;
+    }
+
     const metric = {
       label,
       value,
       timestamp: Date.now(),
       metadata
     };
-    
+
     if (!this.metrics.has(label)) {
       this.metrics.set(label, []);
     }
-    
+
     const metrics = this.metrics.get(label);
     metrics.push(metric);
-    
+
     // Keep only recent metrics
     if (metrics.length > this.maxMetrics) {
       metrics.splice(0, metrics.length - this.maxMetrics);
     }
-    
+
     // Log slow operations
-    if (value > 100) { // More than 100ms
+    if (value > 100) {
+      // More than 100ms
       console.warn(`Slow operation detected: ${label} took ${value.toFixed(2)}ms`, metadata);
     }
   }
@@ -79,10 +86,12 @@ class PerformanceMonitor {
   // Get performance summary
   getSummary() {
     const summary = {};
-    
+
     for (const [label, metrics] of this.metrics) {
-      if (metrics.length === 0) continue;
-      
+      if (metrics.length === 0) {
+        continue;
+      }
+
       const values = metrics.map(m => m.value);
       summary[label] = {
         count: metrics.length,
@@ -92,16 +101,18 @@ class PerformanceMonitor {
         latest: values[values.length - 1]
       };
     }
-    
+
     return summary;
   }
 
   // Setup Performance Observer for automatic monitoring
   setupPerformanceObserver() {
-    if (!('PerformanceObserver' in window)) return;
-    
+    if (!('PerformanceObserver' in window)) {
+      return;
+    }
+
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'measure') {
             this.recordMetric(`measure:${entry.name}`, entry.duration, {
@@ -111,7 +122,7 @@ class PerformanceMonitor {
           }
         }
       });
-      
+
       observer.observe({ entryTypes: ['measure'] });
     } catch (error) {
       console.warn('Failed to setup PerformanceObserver:', error);
@@ -120,28 +131,30 @@ class PerformanceMonitor {
 
   // Monitor memory usage
   monitorMemory() {
-    if (!performance.memory) return null;
-    
+    if (!performance.memory) {
+      return null;
+    }
+
     const memory = {
       used: performance.memory.usedJSHeapSize,
       total: performance.memory.totalJSHeapSize,
       limit: performance.memory.jsHeapSizeLimit,
       timestamp: Date.now()
     };
-    
+
     this.recordMetric('memory', memory.used, {
       total: memory.total,
       limit: memory.limit,
       percentage: (memory.used / memory.limit) * 100
     });
-    
+
     return memory;
   }
 
   // Monitor DOM operations
   monitorDOMOperation(operation, element) {
     const startTime = performance.now();
-    
+
     return () => {
       const duration = performance.now() - startTime;
       this.recordMetric(`dom:${operation}`, duration, {
@@ -155,7 +168,7 @@ class PerformanceMonitor {
   // Monitor storage operations
   monitorStorageOperation(operation, key, dataSize) {
     const startTime = performance.now();
-    
+
     return () => {
       const duration = performance.now() - startTime;
       this.recordMetric(`storage:${operation}`, duration, {
@@ -166,9 +179,10 @@ class PerformanceMonitor {
   }
 
   // Clear old metrics
-  clearOldMetrics(maxAge = 24 * 60 * 60 * 1000) { // 24 hours
+  clearOldMetrics(maxAge = 24 * 60 * 60 * 1000) {
+    // 24 hours
     const cutoff = Date.now() - maxAge;
-    
+
     for (const [label, metrics] of this.metrics) {
       const filtered = metrics.filter(m => m.timestamp > cutoff);
       this.metrics.set(label, filtered);
@@ -197,18 +211,20 @@ const performanceMonitor = new PerformanceMonitor();
 window.performanceMonitor = performanceMonitor;
 
 // Helper functions
-window.startTiming = (label) => performanceMonitor.startTiming(label);
-window.endTiming = (label) => performanceMonitor.endTiming(label);
-window.recordMetric = (label, value, metadata) => performanceMonitor.recordMetric(label, value, metadata);
+window.startTiming = label => performanceMonitor.startTiming(label);
+window.endTiming = label => performanceMonitor.endTiming(label);
+window.recordMetric = (label, value, metadata) =>
+  performanceMonitor.recordMetric(label, value, metadata);
 
 // Auto-clear old metrics every hour
-setInterval(() => {
-  performanceMonitor.clearOldMetrics();
-}, 60 * 60 * 1000);
+setInterval(
+  () => {
+    performanceMonitor.clearOldMetrics();
+  },
+  60 * 60 * 1000
+);
 
 // Export for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = PerformanceMonitor;
-} else {
+if (typeof window !== 'undefined') {
   window.PerformanceMonitor = PerformanceMonitor;
 }

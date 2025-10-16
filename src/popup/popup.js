@@ -18,7 +18,7 @@ class PopupManager {
     }
   }
 
-  async handleInitializationError(error) {
+  async handleInitializationError(_error) {
     if (this.retryCount < this.maxRetries) {
       this.retryCount++;
       setTimeout(() => this.init(), 1000 * this.retryCount);
@@ -31,7 +31,7 @@ class PopupManager {
     try {
       const result = await chrome.storage.local.get(['extensionEnabled']);
       const enabled = result.extensionEnabled !== false; // Default to enabled
-      
+
       const toggle = document.getElementById('extensionToggle');
       toggle.classList.toggle('active', enabled);
     } catch (error) {
@@ -50,7 +50,7 @@ class PopupManager {
 
     // Open stats link
     const openStatsLink = document.getElementById('openStatsLink');
-    openStatsLink.addEventListener('click', (e) => {
+    openStatsLink.addEventListener('click', e => {
       e.preventDefault();
       this.openStatsPage();
     });
@@ -72,20 +72,19 @@ class PopupManager {
       });
 
       toggle.classList.toggle('active', newState);
-      this.showStatus(
-        newState ? 'Timer enabled' : 'Timer disabled', 
-        'success'
-      );
+      this.showStatus(newState ? 'Timer enabled' : 'Timer disabled', 'success');
 
       // Notify content scripts
-      const tabs = await chrome.tabs.query({url: 'https://codeforces.com/*'});
+      const tabs = await chrome.tabs.query({ url: 'https://codeforces.com/*' });
       tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'EXTENSION_TOGGLED',
-          enabled: newState
-        }).catch(() => {
-          // Tab might not have content script loaded
-        });
+        chrome.tabs
+          .sendMessage(tab.id, {
+            type: 'EXTENSION_TOGGLED',
+            enabled: newState
+          })
+          .catch(() => {
+            // Tab might not have content script loaded
+          });
       });
     } catch (error) {
       this.showStatus('Error updating settings', 'error');
@@ -128,10 +127,10 @@ class PopupManager {
   async openStatsPage() {
     try {
       // Create a new tab with stats page
-      const tab = await chrome.tabs.create({
+      await chrome.tabs.create({
         url: chrome.runtime.getURL('stats.html')
       });
-      
+
       // Close popup
       window.close();
     } catch (error) {
@@ -151,15 +150,17 @@ class PopupManager {
 
       if (response.success) {
         this.showStatus('All data cleared successfully', 'success');
-        
+
         // Notify content scripts to refresh
-        const tabs = await chrome.tabs.query({url: 'https://codeforces.com/*'});
+        const tabs = await chrome.tabs.query({ url: 'https://codeforces.com/*' });
         tabs.forEach(tab => {
-          chrome.tabs.sendMessage(tab.id, {
-            type: 'DATA_CLEARED'
-          }).catch(() => {
-            // Tab might not have content script loaded
-          });
+          chrome.tabs
+            .sendMessage(tab.id, {
+              type: 'DATA_CLEARED'
+            })
+            .catch(() => {
+              // Tab might not have content script loaded
+            });
         });
       } else {
         this.showStatus('Error clearing data', 'error');
@@ -175,9 +176,9 @@ class PopupManager {
         reject(new Error('Message timeout'));
       }, timeout);
 
-      chrome.runtime.sendMessage(message, (response) => {
+      chrome.runtime.sendMessage(message, response => {
         clearTimeout(timeoutId);
-        
+
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
         } else if (response?.success === false) {
@@ -193,7 +194,7 @@ class PopupManager {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
@@ -204,13 +205,13 @@ class PopupManager {
   }
 
   showStatus(message, type = '') {
-    const statusElement = document.getElementById('status') || 
-                         document.getElementById('clearStatus');
-    
+    const statusElement =
+      document.getElementById('status') || document.getElementById('clearStatus');
+
     if (statusElement) {
       statusElement.innerHTML = message;
       statusElement.className = `status ${type}`;
-      
+
       // Clear status after 3 seconds for success/error messages
       if (type === 'success' || type === 'error') {
         setTimeout(() => {
@@ -226,4 +227,3 @@ class PopupManager {
 document.addEventListener('DOMContentLoaded', () => {
   new PopupManager();
 });
-

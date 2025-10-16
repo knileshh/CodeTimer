@@ -23,6 +23,143 @@
   color: #ffffff;
 }
 
+/* Enhanced Countdown Panel Styles */
+.cf-timer-countdown-panel {
+  padding: 12px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 8px 8px;
+}
+
+.cf-timer-dark .cf-timer-countdown-panel {
+  background: #333333;
+  border-top-color: #555555;
+}
+
+.cf-countdown-help {
+  text-align: center;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+}
+
+.cf-countdown-help small {
+  color: #2196f3;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.cf-timer-dark .cf-countdown-help {
+  background: rgba(100, 181, 246, 0.2);
+}
+
+.cf-timer-dark .cf-countdown-help small {
+  color: #64b5f6;
+}
+
+.cf-timer-presets {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cf-timer-preset {
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex: 1;
+  min-width: 30px;
+}
+
+.cf-timer-preset:hover {
+  background: #1976d2;
+}
+
+.cf-timer-custom-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.cf-timer-dark .cf-timer-custom-input {
+  background: #404040;
+  border-color: #555555;
+  color: #ffffff;
+}
+
+.cf-timer-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cf-timer-dark .cf-timer-progress-bar {
+  background: #555555;
+}
+
+.cf-timer-progress-fill {
+  height: 100%;
+  background: #4caf50;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+  border-radius: 2px;
+}
+
+/* Toast notification styles */
+.cf-timer-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4caf50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive design for smaller widgets */
+@media (max-width: 250px) {
+  .cf-timer-presets {
+    gap: 4px;
+  }
+
+  .cf-timer-preset {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}
+
 .cf-timer-header {
   background: #f5f5f5;
   padding: 8px 12px;
@@ -85,11 +222,11 @@
   font-size: 24px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
-  color: #2196F3;
+  color: #2196f3;
 }
 
 .cf-timer-dark .cf-timer-time {
-  color: #64B5F6;
+  color: #64b5f6;
 }
 
 .cf-timer-controls {
@@ -101,7 +238,7 @@
 }
 
 .cf-timer-btn {
-  background: #2196F3;
+  background: #2196f3;
   color: white;
   border: none;
   border-radius: 4px;
@@ -118,7 +255,7 @@
 }
 
 .cf-timer-btn:hover {
-  background: #1976D2;
+  background: #1976d2;
   transform: translateY(-1px);
 }
 
@@ -127,7 +264,7 @@
 }
 
 .cf-timer-start {
-  background: #4CAF50;
+  background: #4caf50;
 }
 
 .cf-timer-start:hover {
@@ -135,7 +272,7 @@
 }
 
 .cf-timer-pause {
-  background: #FF9800;
+  background: #ff9800;
 }
 
 .cf-timer-pause:hover {
@@ -151,19 +288,19 @@
 }
 
 .cf-timer-solved {
-  background: #9C27B0;
+  background: #9c27b0;
 }
 
 .cf-timer-solved:hover {
-  background: #7B1FA2;
+  background: #7b1fa2;
 }
 
 .cf-timer-countdown {
-  background: #607D8B;
+  background: #607d8b;
 }
 
 .cf-timer-countdown:hover {
-  background: #455A64;
+  background: #455a64;
 }
 
 .cf-timer-stats {
@@ -177,7 +314,7 @@
 }
 
 .cf-timer-stats-btn {
-  background: #607D8B;
+  background: #607d8b;
   color: white;
   border: none;
   border-radius: 4px;
@@ -188,7 +325,7 @@
 }
 
 .cf-timer-stats-btn:hover {
-  background: #455A64;
+  background: #455a64;
 }
 
 /* Animation for widget appearance */
@@ -213,15 +350,15 @@
     width: 180px;
     font-size: 12px;
   }
-  
+
   .cf-timer-time {
     font-size: 20px;
   }
-  
+
   .cf-timer-controls {
     gap: 6px;
   }
-  
+
   .cf-timer-btn {
     padding: 6px 10px;
     font-size: 11px;
@@ -252,7 +389,7 @@ body.dark .cf-timer-display {
 }
 
 body.dark .cf-timer-time {
-  color: #64B5F6;
+  color: #64b5f6;
 }
 
 /* Performance metrics styling */
@@ -267,7 +404,7 @@ body.dark .cf-timer-time {
   background: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
-  border-left: 4px solid #2196F3;
+  border-left: 4px solid #2196f3;
 }
 
 .cf-timer-dark .performance-item {
@@ -288,7 +425,7 @@ body.dark .cf-timer-time {
 .performance-value {
   font-size: 24px;
   font-weight: bold;
-  color: #2196F3;
+  color: #2196f3;
   margin-bottom: 4px;
 }
 
@@ -307,13 +444,12 @@ body.dark .cf-timer-time {
   .performance-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .performance-item {
     padding: 12px;
   }
-  
+
   .performance-value {
     font-size: 20px;
   }
 }
-

@@ -55,13 +55,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved user experience with tooltips and visual cues
 - Optimized storage operations for better performance
 
+## [1.2.0] - 2025-10-16 (Hacktoberfest Enhancement)
+
+### Added
+- **🎯 Enhanced Countdown Mode**: Complete overhaul of countdown functionality
+  - **Quick Presets**: One-click 15min, 30min, 45min, 1hr, 2hr countdown options
+  - **Custom Duration**: Set any countdown time up to 5 hours via input field
+  - **Visual Progress Bar**: Real-time countdown progress with color-coded warnings
+  - **Smart Color Coding**: Green → Orange → Red alerts as time expires
+  - **Sound Alerts**: Web Audio API-based beep notification on completion
+  - **Enhanced Notifications**: Rich browser notifications with countdown details
+  - **Toast Messages**: In-page success feedback for better UX
+  - **Auto-Reset**: Automatic timer reset 5 seconds after countdown completion
+  - **Improved UI**: Collapsible countdown panel with better visual hierarchy
+
+### Enhanced
+- **Better Visual Feedback**: Color-coded time display based on remaining percentage
+- **Responsive Design**: Better mobile compatibility for countdown controls
+- **Accessibility**: Improved tooltips and keyboard navigation
+- **Animation**: Pulsing animation for "TIME UP!" state
+
+### Technical Improvements
+- Modular countdown functionality with better code organization
+- Enhanced error handling for Web Audio API compatibility
+- Improved CSS structure with proper dark mode support
+- Better state management for countdown mode transitions
+
 ## [Unreleased]
 
 ### Planned Features
-- Countdown mode with custom target times
 - Achievement system with badges and milestones
 - Data export functionality (CSV/JSON)
-- Keyboard shortcuts for quick timer controls
+- Enhanced keyboard shortcuts for quick timer controls
 - Enhanced analytics with performance trends
 - Multi-platform support (AtCoder, LeetCode)
 - Cloud synchronization for cross-device usage
