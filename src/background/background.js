@@ -22,7 +22,7 @@ class TimerBackground {
         handler(message, sendResponse);
         return true; // Keep message channel open for async response
       }
-      
+
       // Unknown message type
       sendResponse({ success: false, error: 'Unknown message type' });
       return false;
@@ -43,16 +43,18 @@ class TimerBackground {
 
   async notifyContentScripts(changes) {
     try {
-      const tabs = await chrome.tabs.query({url: 'https://codeforces.com/*'});
-      const notifications = tabs.map(tab => 
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'STORAGE_CHANGED',
-          changes: changes
-        }).catch(() => {
-          // Tab might not have content script loaded yet - ignore silently
-        })
+      const tabs = await chrome.tabs.query({ url: 'https://codeforces.com/*' });
+      const notifications = tabs.map(tab =>
+        chrome.tabs
+          .sendMessage(tab.id, {
+            type: 'STORAGE_CHANGED',
+            changes
+          })
+          .catch(() => {
+            // Tab might not have content script loaded yet - ignore silently
+          })
       );
-      
+
       await Promise.allSettled(notifications);
     } catch (error) {
       console.warn('Failed to notify content scripts:', error);
@@ -61,13 +63,13 @@ class TimerBackground {
 
   setupErrorHandling() {
     // Global error handler for unhandled promise rejections
-    self.addEventListener('unhandledrejection', (event) => {
+    self.addEventListener('unhandledrejection', event => {
       console.error('Unhandled promise rejection:', event.reason);
       event.preventDefault();
     });
 
     // Global error handler for runtime errors
-    self.addEventListener('error', (event) => {
+    self.addEventListener('error', event => {
       console.error('Runtime error:', event.error);
     });
   }
@@ -117,7 +119,7 @@ class TimerBackground {
   calculateStats(allData) {
     const problemKeys = Object.keys(allData).filter(key => key.startsWith('cf_'));
     const today = new Date().toDateString();
-    
+
     let totalTime = 0;
     let todayTime = 0;
     let problemCount = 0;
@@ -126,18 +128,21 @@ class TimerBackground {
     // Use for...of for better performance than forEach
     for (const key of problemKeys) {
       const data = allData[key];
-      if (!data?.history) continue;
+      if (!data?.history) {
+        continue;
+      }
 
       for (const session of data.history) {
-        const sessionTime = session.end ? 
-          (new Date(session.end) - new Date(session.start)) / 1000 : 0;
+        const sessionTime = session.end
+          ? (new Date(session.end) - new Date(session.start)) / 1000
+          : 0;
         totalTime += sessionTime;
-        
+
         if (new Date(session.start).toDateString() === today) {
           todayTime += sessionTime;
         }
       }
-      
+
       if (data.history.length > 0) {
         problemCount++;
         recentProblems.push({
@@ -162,14 +167,14 @@ class TimerBackground {
   async clearAllData(message, sendResponse) {
     try {
       const allData = await chrome.storage.local.get();
-      const keysToRemove = Object.keys(allData).filter(key => 
-        key.startsWith('cf_') || key === 'timerWidgetPosition'
+      const keysToRemove = Object.keys(allData).filter(
+        key => key.startsWith('cf_') || key === 'timerWidgetPosition'
       );
-      
+
       if (keysToRemove.length > 0) {
         await chrome.storage.local.remove(keysToRemove);
       }
-      
+
       sendResponse({ success: true });
     } catch (error) {
       sendResponse({ success: false, error: error.message });
@@ -190,7 +195,7 @@ class TimerBackground {
     try {
       const { error } = message;
       console.error('Error reported from content script:', error);
-      
+
       // Store error for debugging
       const errors = await chrome.storage.local.get(['reportedErrors']);
       const errorList = errors.reportedErrors || [];
@@ -198,12 +203,12 @@ class TimerBackground {
         ...error,
         reportedAt: new Date().toISOString()
       });
-      
+
       // Keep only last 50 errors
       if (errorList.length > 50) {
         errorList.splice(0, errorList.length - 50);
       }
-      
+
       await chrome.storage.local.set({ reportedErrors: errorList });
       sendResponse({ success: true });
     } catch (error) {
@@ -215,4 +220,3 @@ class TimerBackground {
 
 // Initialize background service
 new TimerBackground();
-

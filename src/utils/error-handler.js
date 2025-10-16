@@ -21,12 +21,12 @@ class ErrorHandler {
     try {
       const errors = JSON.parse(localStorage.getItem('cf_timer_errors') || '[]');
       errors.push(errorInfo);
-      
+
       // Keep only last 10 errors
       if (errors.length > 10) {
         errors.splice(0, errors.length - 10);
       }
-      
+
       localStorage.setItem('cf_timer_errors', JSON.stringify(errors));
     } catch (e) {
       console.warn('Failed to store error:', e);
@@ -36,7 +36,7 @@ class ErrorHandler {
   static async reportError(error, context = '') {
     try {
       this.logError(error, context);
-      
+
       // Send error to background script for potential reporting
       if (chrome?.runtime?.sendMessage) {
         await chrome.runtime.sendMessage({
@@ -105,17 +105,15 @@ class ErrorHandler {
 }
 
 // Global error handlers
-window.addEventListener('error', (event) => {
+window.addEventListener('error', event => {
   ErrorHandler.logError(event.error, 'Global error handler');
 });
 
-window.addEventListener('unhandledrejection', (event) => {
+window.addEventListener('unhandledrejection', event => {
   ErrorHandler.logError(event.reason, 'Unhandled promise rejection');
 });
 
 // Export for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ErrorHandler;
-} else {
+if (typeof window !== 'undefined') {
   window.ErrorHandler = ErrorHandler;
 }

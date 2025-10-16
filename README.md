@@ -32,6 +32,15 @@ A powerful browser extension that provides a floating stopwatch for Codeforces p
 - **Intuitive Controls**: Clean, accessible interface
 - **Global Settings**: Enable/disable extension with one click
 
+### ⏰ **Enhanced Countdown Mode**
+- **Quick Presets**: 15min, 30min, 45min, 1hr, 2hr countdown options
+- **Custom Duration**: Set any countdown time up to 5 hours
+- **Visual Warnings**: Color-coded alerts (Green → Orange → Red) as time runs out
+- **Progress Bar**: Real-time visual countdown progress indicator
+- **Sound Alerts**: Audio notification when countdown completes
+- **Smart Notifications**: Enhanced browser notifications with countdown details
+- **Auto-Reset**: Automatic timer reset after countdown completion
+
 ## 🚀 Quick Start
 
 ### Installation (Development)
@@ -66,7 +75,25 @@ The extension is available on the Chrome Web Store for easy installation.
 | ⏸ | Pause | Temporarily stop the timer |
 | ⏹ | Reset | Clear current session and start over |
 | ✓ | Solved | Mark problem as completed |
+| ⏰ | Countdown | Toggle between stopwatch and countdown modes |
 | 📊 | Stats | Open detailed statistics dashboard |
+
+### Enhanced Countdown Mode
+
+The countdown feature helps you practice time management for competitive programming:
+
+1. **Quick Setup**: 
+   - Click ⏰ button once to see options, twice for 30min default
+   - Keyboard shortcut: `Ctrl+C` for instant countdown toggle
+2. **Preset Options**: One-click 15min, 30min, 45min, 1hr, or 2hr countdowns
+3. **Custom Duration**: Enter any time in the input field (up to 5 hours)
+4. **Smart UX**: Helpful tips and single-click defaults for faster setup
+5. **Visual Feedback**: 
+   - **Green Progress Bar**: More than 25% time remaining
+   - **Orange Warning**: 10-25% time remaining  
+   - **Red Alert**: Less than 10% time remaining
+6. **Completion Alerts**: Sound notification and browser alert when time expires
+7. **Auto-Reset**: Timer automatically resets 5 seconds after completion
 
 ### Statistics Dashboard
 
@@ -188,11 +215,17 @@ We welcome contributions! Please follow these guidelines:
 
 ## 🛣️ Roadmap
 
-### Version 1.1 (Planned)
-- [ ] **Countdown Mode**: Set target times for problems
+### Version 1.1 (✅ Completed)
+- [x] **Enhanced Countdown Mode**: Quick presets, progress bar, visual warnings
+- [x] **Improved UI**: Better visual feedback and user experience
+- [x] **Sound Alerts**: Audio notifications for countdown completion
+- [x] **Progress Tracking**: Real-time countdown progress visualization
+
+### Version 1.2 (Planned)
 - [ ] **Achievement System**: Unlock badges for milestones
 - [ ] **Export Data**: Download statistics as CSV/JSON
 - [ ] **Keyboard Shortcuts**: Quick timer controls
+- [ ] **Custom Themes**: Personalized widget appearance
 
 ### Version 1.2 (Future)
 - [ ] **ML Predictions**: AI-powered solve time estimates

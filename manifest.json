@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Codeforces Timer Extension",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A floating stopwatch for Codeforces problem solving with persistent timing and stats tracking",
   "icons": {
     "16": "icons/icon16.png",
@@ -9,17 +9,16 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": [
-    "storage",
-    "notifications"
-  ],
-  "host_permissions": [
-    "https://codeforces.com/*"
-  ],
+  "permissions": ["storage", "notifications"],
+  "host_permissions": ["https://codeforces.com/*"],
   "content_scripts": [
     {
       "matches": ["https://codeforces.com/*"],
-      "js": ["src/utils/error-handler.js", "src/utils/performance-monitor.js", "src/content-scripts/content.js"],
+      "js": [
+        "src/utils/error-handler.js",
+        "src/utils/performance-monitor.js",
+        "src/content-scripts/content.js"
+      ],
       "css": ["styles.css"],
       "run_at": "document_end",
       "all_frames": false
@@ -46,4 +45,3 @@
   ],
   "minimum_chrome_version": "88"
 }
-
